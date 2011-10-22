@@ -382,8 +382,12 @@ params   = _params;
                 [self dialogDidCancel:url];
             }
         } else {
-            [self dialogDidSucceed:url];
-        }
+			if ([[url absoluteString] rangeOfString:@"post_id"].location == NSNotFound) {
+				[self dialogDidCancel:url];
+			} else {
+				[self dialogDidSucceed:url];
+			}
+		}
         return NO;
     } else if ([_loadingURL isEqual:url]) {
         return YES;
