@@ -15,7 +15,6 @@
  */
 
 #import "FBRequest.h"
-#import "JSON.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // global
@@ -172,6 +171,33 @@ static const NSTimeInterval kTimeoutInterval = 180.0;
 
 }
 
++ (id)parseJSONData:(NSData *)data error:(NSError **)error {
+	if (!data || [data length] == 0) {
+		return nil;
+	}
+	if ([NSJSONSerialization self]) {
+		return [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:error];
+	} else if ([data respondsToSelector:NSSelectorFromString(@"objectFromJSONData")]) {
+		id JSONValue = nil;
+		@try {
+			JSONValue = [data performSelector:NSSelectorFromString(@"objectFromJSONData")];
+		}
+		@catch (NSException *e) {
+			JSONValue = nil;
+			if (error) {
+				*error = [NSError errorWithDomain:@"Facebook"
+											 code:0
+										 userInfo:[NSDictionary dictionaryWithObject:e.reason
+																			  forKey:NSLocalizedDescriptionKey]];
+			}
+		}
+		return JSONValue;
+	} else {
+		NSLog(@"JSON parser is not available");
+	}
+	return nil;
+}
+
 /**
  * parse the response data
  */
@@ -180,7 +206,6 @@ static const NSTimeInterval kTimeoutInterval = 180.0;
   NSString* responseString = [[[NSString alloc] initWithData:data
                                                     encoding:NSUTF8StringEncoding]
                               autorelease];
-  SBJSON *jsonParser = [[SBJSON new] autorelease];
   if ([responseString isEqualToString:@"true"]) {
     return [NSDictionary dictionaryWithObject:@"true" forKey:@"result"];
   } else if ([responseString isEqualToString:@"false"]) {
@@ -193,8 +218,7 @@ static const NSTimeInterval kTimeoutInterval = 180.0;
     return nil;
   }
 
-
-  id result = [jsonParser objectWithString:responseString];
+  id result = [[self class] parseJSONData:data error:error];
 
   if (![result isKindOfClass:[NSArray class]]) {
     if ([result objectForKey:@"error"] != nil) {
