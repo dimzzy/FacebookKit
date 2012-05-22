@@ -72,6 +72,7 @@ typedef NSUInteger FBRequestState;
  */
 @property(nonatomic,retain) NSError* error;
 
++ (id)parseJSONData:(NSData *)data error:(NSError **)error;
 
 + (NSString*)serializeURL:(NSString *)baseUrl
                    params:(NSDictionary *)params;

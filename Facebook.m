@@ -725,8 +725,7 @@ static void *finishedContext = @"finishedContext";
             id fbid = [params objectForKey:@"to"];
             if (fbid != nil) {
                 // if value parses as a json array expression get the list that way
-                SBJsonParser *parser = [[[SBJsonParser alloc] init] autorelease];
-                id fbids = [parser objectWithString:fbid];
+                id fbids = [FBRequest parseJSONData:[fbid dataUsingEncoding:NSUTF8StringEncoding] error:nil];
                 if (![fbids isKindOfClass:[NSArray class]]) {
                     // otherwise seperate by commas (handles the singleton case too)
                     fbids = [fbid componentsSeparatedByString:@","];
